@@ -7,14 +7,17 @@ import { useParams } from "react-router-dom";
 import axios from "../axios";
 import ReactMarkdown from 'react-markdown'
 
+
 export const FullPost = () => {
   const [data, setData] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const {id} = useParams();
+  const [comments, setComments] = useState('');
 
   useEffect(() => {
     axios.get(`/posts/${id}`).then(res => {
       setData(res.data);
+      setComments(res.data.comments);
       setIsLoading(false);
     }).catch(err => {
       console.warn(err)
@@ -24,6 +27,7 @@ export const FullPost = () => {
 
   if (isLoading) {
     return <Post isLoading={isLoading} isFullPost/>
+
   }
 
   return (
@@ -34,32 +38,25 @@ export const FullPost = () => {
         imageUrl={data.imageUrl ? `http://localhost:4444${data.imageUrl}`: ''}
         createdAt={data.createdAt}
         viewsCount={data.viewsCount}
-        commentsCount={3}
+        commentsCount={data.comments.length}
         tags={data.tags}
         isFullPost
       >
         <ReactMarkdown children={data.text} />
       </Post>
       <CommentsBlock
-        items={[
-          {
-            user: {
-              fullName: "Вася Пупкин",
-              avatarUrl: "https://mui.com/static/images/avatar/1.jpg",
-            },
-            text: "Это тестовый комментарий 555555",
-          },
-          {
-            user: {
-              fullName: "Иван Иванов",
-              avatarUrl: "https://mui.com/static/images/avatar/2.jpg",
-            },
-            text: "When displaying three lines or more, the avatar is not aligned at the top. You should set the prop to align the avatar at the top",
-          },
-        ]}
+        data={data}
+        comments={comments}
+        setComments={setComments}
         isLoading={false}
+        authorId={data.user._id}
       >
-        <Index />
+        <Index 
+          id={data._id}
+          data={data}
+          comments={comments}
+          setComments={setComments}
+        />
       </CommentsBlock>
     </>
   );

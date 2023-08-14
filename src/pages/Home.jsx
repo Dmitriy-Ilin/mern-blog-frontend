@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Grid from '@mui/material/Grid';
@@ -7,27 +7,34 @@ import { Post } from '../components/Post';
 import { TagsBlock } from '../components/TagsBlock';
 import { CommentsBlock } from '../components/CommentsBlock';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPosts, fetchTags } from '../redux/slices/posts';
+import { fetchComments, fetchPosts, fetchPostsByViews, fetchTags } from '../redux/slices/posts';
 
 export const Home = () => {
   const dispatch = useDispatch();
   const userData = useSelector(state => state.auth.data);
-  const { posts, tags } = useSelector(state => state.posts);
+  const { posts, tags, comments } = useSelector(state => state.posts);
+  const [tabsValue, setTabsValue] = useState(0);
 
   const isPostsLoading = posts.status === 'loading';
   const isTagsLoading = tags.status === 'loading';
+  const isCommentsLoading = comments.status === 'loading';
 
   useEffect(() => {
-    dispatch(fetchPosts());
+    if (tabsValue === 0) {
+      dispatch(fetchPosts());
+    } else if (tabsValue === 1) {
+      dispatch(fetchPostsByViews())
+    }
+    dispatch(fetchComments())
     dispatch(fetchTags());
-  }, [dispatch]);
+  }, [tabsValue]);
 
 
   return (
     <>
-      <Tabs style={{ marginBottom: 15 }} value={0} aria-label="basic tabs example">
-        <Tab label="Новые" />
-        <Tab label="Популярные" />
+      <Tabs style={{ marginBottom: 15 }} value={tabsValue} aria-label="basic tabs example">
+        <Tab label="Новые" onClick={() => setTabsValue(0)}/>
+        <Tab label="Популярные" onClick={() => setTabsValue(1)}/>
       </Tabs>
       <Grid container spacing={4}>
         <Grid xs={8} item>
@@ -40,7 +47,7 @@ export const Home = () => {
               user={obj.user}
               createdAt={obj.createdAt}
               viewsCount={obj.viewsCount}
-              commentsCount={3}
+              commentsCount={obj.comments.length}
               tags={obj.tags}
               isEditable={userData?._id === obj.user._id}
             />
@@ -49,23 +56,8 @@ export const Home = () => {
         <Grid xs={4} item>
           <TagsBlock items={tags.items} isLoading={isTagsLoading} />
           <CommentsBlock
-            items={[
-              {
-                user: {
-                  fullName: 'test1 test1',
-                  avatarUrl: 'https://mui.com/static/images/avatar/1.jpg',
-                },
-                text: 'Это тестовый комментарий',
-              },
-              {
-                user: {
-                  fullName: 'test2 test2',
-                  avatarUrl: 'https://mui.com/static/images/avatar/2.jpg',
-                },
-                text: 'Это тестовый комментарий',
-              },
-            ]}
-            isLoading={false}
+            comments={comments.items} 
+            isLoading={isCommentsLoading}
           />
         </Grid>
       </Grid>

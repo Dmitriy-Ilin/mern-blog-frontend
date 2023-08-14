@@ -44,6 +44,7 @@ const authSlice = createSlice({
             state.status = 'error'
             state.data = null
         },
+        
         [fetchLogin.pending]: (state) => {
             state.status = 'loading'
             state.data = null
@@ -56,6 +57,7 @@ const authSlice = createSlice({
             state.status = 'error'
             state.data = null
         },
+
         [fetchRegistration.pending]: (state) => {
             state.status = 'loading'
             state.data = null
